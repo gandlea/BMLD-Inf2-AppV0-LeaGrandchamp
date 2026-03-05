@@ -1,5 +1,6 @@
 import streamlit as st
 from functions.addition import hct_rechner
+import matplotlib.pyplot as plt
 
 st.title("Hämatokrit-Rechner")
 st.write("Berechnet Hämatokrit (Hct) mit: **Hct (%) = RBC · MCV / 10**")
@@ -47,3 +48,35 @@ if submitted:
             st.warning("Hct liegt über dem Referenzbereich.")
         else:
             st.success("Hct liegt im Referenzbereich.")
+
+if submitted:
+    if rbc <= 0 or mcv <= 0:
+        st.error("Bitte gültige Werte eingeben: RBC und MCV müssen > 0 sein.")
+        st.stop()
+
+
+    # ---- GRAFIK (auch innerhalb von submitted!) ----
+    st.subheader("Einordnung (Grafik)")
+    fig, ax = plt.subplots(figsize=(7, 1.6))
+
+    if lo is not None and hi is not None:
+        pad = max(5.0, (hi - lo) * 0.5)
+        xmin = max(0.0, lo - pad)
+        xmax = hi + pad
+        ax.axvspan(lo, hi, alpha=0.2)
+    else:
+        xmin, xmax = 0.0, 70.0
+
+    ax.set_xlim(xmin, xmax)
+    ax.set_yticks([])
+    ax.set_xlabel("Hct (%)")
+
+    ax.axvline(hct_percent, linewidth=3)
+    ax.text(
+        hct_percent, 0.6, f"{hct_percent:.1f} %",
+        transform=ax.get_xaxis_transform(),
+        ha="left", va="center"
+    )
+
+    st.pyplot(fig)
+    plt.close(fig)
