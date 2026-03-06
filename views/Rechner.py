@@ -17,7 +17,7 @@ def get_ref(sex: str, age: int):
             return lo, hi
     return None, None
 
-with st.form(key="hct_form_hematokrit"):  # <- Key geändert (eindeutig)
+with st.form(key="hct_form_hematokrit"):
     sex = st.radio("Geschlecht", ["weiblich", "männlich"], horizontal=True)
     age = st.number_input("Alter [Jahre]", min_value=0, max_value=120, value=30, step=1)
 
@@ -29,7 +29,7 @@ with st.form(key="hct_form_hematokrit"):  # <- Key geändert (eindeutig)
 if submitted:
     if rbc <= 0 or mcv <= 0:
         st.error("Bitte gültige Werte eingeben: RBC und MCV müssen > 0 sein.")
-        st.stop()  # wichtig, sonst rechnet er weiter
+        st.stop()
 
     hct_percent, hct_fraction = hct_rechner(rbc, mcv)
 
@@ -49,36 +49,29 @@ if submitted:
         else:
             st.success("Hct liegt im Referenzbereich.")
 
-if submitted:
-    if rbc <= 0 or mcv <= 0:
-        st.error("Bitte gültige Werte eingeben: RBC und MCV müssen > 0 sein.")
-        st.stop()
+    # ---- GRAFIK oder Warnung ----
+    if hct_percent < 32 or hct_percent > 55:
+        st.error("Achtung! Extremwert. Präanalytik und klinische Plausibilität kontrollieren.")
+    else:
+        st.subheader("Einordnung")
+        fig, ax = plt.subplots(figsize=(10, 1.6))
 
+        xmin, xmax = 32.0, 55.0
 
-    # ---- GRAFIK (auch innerhalb von submitted!) ----
-    st.subheader("Einordnung")
-    fig, ax = plt.subplots(figsize=(7, 1.6))
+        if lo is not None and hi is not None:
+            ax.axvspan(lo, hi, alpha=0.2)
 
-    xmin, xmax = 32.0, 55.0
+        ax.set_xlim(xmin, xmax)
+        ax.set_xticks(range(32, 55, 2))
+        ax.set_yticks([])
+        ax.set_xlabel("Hct (%)")
 
-    if lo is not None and hi is not None:
-     ax.axvspan(lo, hi, alpha=0.2)
+        ax.axvline(hct_percent, linewidth=3)
+        ax.text(
+            hct_percent, 0.6, f"{hct_percent:.1f} %",
+            transform=ax.get_xaxis_transform(),
+            ha="left", va="center"
+        )
 
-    ax.set_xlim(xmin, xmax)
-    ax.set_xticks(range(32, 55, 2))
-    ax.set_yticks([])
-    ax.set_xlabel("Hct (%)")
-
-    ax.axvline(hct_percent, linewidth=3)
-    ax.text(
-        hct_percent, 0.6, f"{hct_percent:.1f} %",
-        transform=ax.get_xaxis_transform(),
-        ha="left", va="center"
-    )
-
-    st.pyplot(fig)
-    plt.close(fig)
-
-st.markdown("Hämatokritwerte unter 32% sowie über 55% sind nicht mit dem Leben zu vereinbaren und werden nicht mehr in der Grafik angezeigt.")
-
-    
+        st.pyplot(fig)
+        plt.close(fig)
