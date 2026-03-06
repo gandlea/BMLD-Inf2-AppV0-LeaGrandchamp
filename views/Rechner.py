@@ -56,7 +56,7 @@ if submitted:
 
 
     # ---- GRAFIK (auch innerhalb von submitted!) ----
-    st.subheader("Einordnung (Grafik)")
+    st.subheader("Einordnung")
     fig, ax = plt.subplots(figsize=(7, 1.6))
 
     if lo is not None and hi is not None:
@@ -80,3 +80,7 @@ if submitted:
 
     st.pyplot(fig)
     plt.close(fig)
+
+st.markdown("Hämatokritwerte unter 32% sowie über 50% sind nicht mit dem Leben zu vereinbaren und werden nicht mehr in der Grafik angezeigt.")
+
+    
