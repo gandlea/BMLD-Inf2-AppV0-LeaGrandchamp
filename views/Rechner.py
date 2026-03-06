@@ -59,15 +59,13 @@ if submitted:
     st.subheader("Einordnung")
     fig, ax = plt.subplots(figsize=(7, 1.6))
 
+    xmin, xmax = 32.0, 55.0
+
     if lo is not None and hi is not None:
-        pad = max(5.0, (hi - lo) * 0.5)
-        xmin = max(0.0, lo - pad)
-        xmax = hi + pad
-        ax.axvspan(lo, hi, alpha=0.2)
-    else:
-        xmin, xmax = 0.0, 70.0
+     ax.axvspan(lo, hi, alpha=0.2)
 
     ax.set_xlim(xmin, xmax)
+    ax.set_xticks(range(32, 55, 2))
     ax.set_yticks([])
     ax.set_xlabel("Hct (%)")
 
@@ -81,6 +79,6 @@ if submitted:
     st.pyplot(fig)
     plt.close(fig)
 
-st.markdown("Hämatokritwerte unter 32% sowie über 50% sind nicht mit dem Leben zu vereinbaren und werden nicht mehr in der Grafik angezeigt.")
+st.markdown("Hämatokritwerte unter 32% sowie über 55% sind nicht mit dem Leben zu vereinbaren und werden nicht mehr in der Grafik angezeigt.")
 
     
