@@ -1,21 +1,14 @@
+from unicodedata import category
+
 import streamlit as st
-from functions.addition import hct_rechner
+from functions.addition import hct_rechner, get_ref
 import matplotlib.pyplot as plt
+import pytz
+import pandas as pd
+
 
 st.title("Hämatokrit-Rechner")
 st.write("Berechnet Hämatokrit (Hct) mit: **Hct (%) = RBC · MCV / 10**")
-
-# Beispiel-Referenzbereiche (bitte mit euren Werten ersetzen!)
-REF = {
-    "weiblich": [(18, 120, 36.0, 46.0)],
-    "männlich": [(18, 120, 41.0, 53.0)],
-}
-
-def get_ref(sex: str, age: int):
-    for a_min, a_max, lo, hi in REF.get(sex, []):
-        if a_min <= age <= a_max:
-            return lo, hi
-    return None, None
 
 with st.form(key="hct_form_hematokrit"):
     sex = st.radio("Geschlecht", ["weiblich", "männlich"], horizontal=True)
@@ -31,26 +24,27 @@ if submitted:
         st.error("Bitte gültige Werte eingeben: RBC und MCV müssen > 0 sein.")
         st.stop()
 
-    hct_percent, hct_fraction = hct_rechner(rbc, mcv)
+    result = hct_rechner(rbc, mcv)
 
     col1, col2 = st.columns(2)
-    col1.metric("Hämatokrit", f"{hct_percent:.1f} %")
-    col2.metric("Hämatokrit (L/L)", f"{hct_fraction:.3f}")
+    col1.metric("Hämatokrit", f"{result["hct_percent"]} %")
+    col2.metric("Hämatokrit (L/L)", f"{result['hct_fraction']}")
+
 
     lo, hi = get_ref(sex, int(age))
     if lo is None:
         st.info(f"Kein Referenzbereich hinterlegt für {sex}, {int(age)} Jahre.")
     else:
         st.caption(f"Referenzbereich ({sex}, {int(age)} J.): {lo:.1f}–{hi:.1f} %")
-        if hct_percent < lo:
+        if result["hct_percent"] < lo:
             st.warning("Hct liegt unter dem Referenzbereich.")
-        elif hct_percent > hi:
+        elif result["hct_percent"] > hi:
             st.warning("Hct liegt über dem Referenzbereich.")
         else:
             st.success("Hct liegt im Referenzbereich.")
 
     # ---- GRAFIK oder Warnung ----
-    if hct_percent < 32 or hct_percent > 55:
+    if result["hct_percent"] < 32 or result["hct_percent"] > 55:
         st.error("Achtung! Extremwert. Präanalytik und klinische Plausibilität kontrollieren.")
     else:
         st.subheader("Einordnung")
@@ -66,12 +60,18 @@ if submitted:
         ax.set_yticks([])
         ax.set_xlabel("Hct (%)")
 
-        ax.axvline(hct_percent, linewidth=3)
+        ax.axvline(result["hct_percent"], linewidth=3)
         ax.text(
-            hct_percent, 0.6, f"{hct_percent:.1f} %",
+            result["hct_percent"], 0.6, f"{result['hct_percent']:.1f} %",
             transform=ax.get_xaxis_transform(),
             ha="left", va="center"
         )
 
         st.pyplot(fig)
         plt.close(fig)
+
+    # --- NEW CODE to update history in session state and display it ---
+    st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
+        
+# --- NEW CODE to display the history table ---
+st.dataframe(st.session_state['data_df'])
