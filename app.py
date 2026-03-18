@@ -1,3 +1,4 @@
+import pandas as pd  # --- NEW CODE: add pandas to the imports ---
 import streamlit as st
 import pandas as pd
 
