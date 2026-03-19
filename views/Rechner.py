@@ -80,3 +80,24 @@ if submitted:
         
 # --- NEW CODE to display the history table ---
 st.dataframe(st.session_state['data_df'])
+
+# --- Balkendiagramm der gespeicherten Hct-Werte ---
+if not st.session_state['data_df'].empty and "hct_percent" in st.session_state['data_df'].columns:
+    st.subheader("Verlauf der gespeicherten Hämatokrit-Werte")
+
+    chart_df = st.session_state['data_df'].copy().tail(10).reset_index(drop=True)
+    chart_df["Messung"] = range(1, len(chart_df) + 1)
+
+    fig, ax = plt.subplots(figsize=(10, 4))
+    ax.bar(chart_df["Messung"], chart_df["hct_percent"])
+
+    ax.set_xlabel("Letzte Messungen")
+    ax.set_ylabel("Hct (%)")
+    ax.set_title("Letzte 10 gespeicherte Ergebnisse")
+    ax.axhline(32, linestyle="--", linewidth=1)
+    ax.axhline(55, linestyle="--", linewidth=1)
+
+    st.pyplot(fig)
+    plt.close(fig)
+else:
+    st.info("Noch keine gespeicherten Ergebnisse vorhanden.")
